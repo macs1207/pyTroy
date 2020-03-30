@@ -1,0 +1,19 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	/3fdf28bc/
+IP	../week1/ex01.py	/^IP = "192.168.10.80"$/;"	kind:variable	line:4
+MAX_BYTES	../week1/ch01_udp.py	/^MAX_BYTES = 1024$/;"	kind:variable	line:3
+MAX_BYTES	../week1/ex01.py	/^MAX_BYTES = 1024$/;"	kind:variable	line:3
+PORT	../week1/ex01.py	/^PORT = 2020$/;"	kind:variable	line:5
+ch01_udp.py	../week1/ch01_udp.py	1;"	kind:file	line:1
+client	../week1/ch01_udp.py	/^def client(host, port):$/;"	kind:function	line:14
+client	../week1/ex01.py	/^def client(host, port):$/;"	kind:function	line:16
+ex01.py	../week1/ex01.py	1;"	kind:file	line:1
+main	../week1/ch01_udp.py	/^def main():$/;"	kind:function	line:21
+main	../week1/ex01.py	/^def main():$/;"	kind:function	line:30
+server	../week1/ch01_udp.py	/^def server(host, port):$/;"	kind:function	line:6
+server	../week1/ex01.py	/^def server(host, port):$/;"	kind:function	line:8

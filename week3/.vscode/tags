@@ -1,0 +1,12 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	/3fdf28bc/
+bmp_unpack	../ch03-bmpfile.py	/^def bmp_unpack(file_name):$/;"	kind:function	line:6
+ch03-bmpfile.py	../ch03-bmpfile.py	1;"	kind:file	line:1
+ch03-file.py	../ch03-file.py	1;"	kind:file	line:1
+main	../ch03-bmpfile.py	/^def main():$/;"	kind:function	line:55
+main	../ch03-file.py	/^def main():$/;"	kind:function	line:5
