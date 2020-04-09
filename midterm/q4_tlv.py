@@ -1,8 +1,15 @@
+import random
 import socket
 import struct
 import sys
+import logging
 
 MAX_BYTES = 102400
+
+logging.basicConfig(level=logging.INFO, 
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M',
+                    filename="q4.log")
 
 class NetworkIO:
 
@@ -88,34 +95,79 @@ class NetworkIO:
         return result
 
 
-def client(host, port):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((host, port))
-
-    handle = NetworkIO(sock)
-    
-    file_data = {}
-    while True:
-        result = handle.read()
-        if not result:
-            break
-        file_data[result["type"]] = result["data"]
+def server(host, port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((host, port))
+        s.listen()
         
-        if len(file_data.keys()) == 3:
-            handle.save(file_data)
-            file_data = {}
-     
-    sock.close()
+        file_data = [
+            [
+                "a.dat",
+                b"Alpha\n",
+                6
+            ],
+            [
+                "b.dat",
+                b"Beta\n",
+                5
+            ],
+            [
+                "c.dat",
+                b"Charlie\n",
+                8
+            ],
+            [
+                "d.dat",
+                b"Delta\n",
+                6
+            ],
+        ]
+                
+        while True:
+            sock, sockname = s.accept()
+            
+            logging.info(f"Host: {sockname[0]}, Port: {sockname[0]}")
+            
+            handler = NetworkIO(sock)
+            
+            random.shuffle(file_data)
+            for i in range(3):
+                random.shuffle(file_data[i])
+                for data in file_data[i]:
+                    handler.write(data)
+            
+            sock.close()
 
+
+def client(host, port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
+
+        handler = NetworkIO(s)
+        
+        file_data = {}
+        while True:
+            result = handler.read()
+            if not result:
+                break
+            file_data[result["type"]] = result["data"]
+            
+            if len(file_data.keys()) == 3:
+                handler.save(file_data)
+                file_data = {}
+     
 
 def main():
-    msg = "Usage: %s client host port" % sys.argv[0]
+    msg = "Usage: %s {server|client} host port" % sys.argv[0]
     if len(sys.argv) != 4:
         print(msg)
     else:
         host = sys.argv[2]
         port = int(sys.argv[3])
-        if sys.argv[1] == "client":
+        if sys.argv[1] == "server":
+            server(host, port)
+        elif sys.argv[1] == "client":
             client(host, port)
         else:
             print(msg)
