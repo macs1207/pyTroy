@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             
-            "args": ["client", "nkust.ipv6.club.tw", "1064"]
+            "args": ["client", "nkust.ipv6.club.tw", "1065"]
         }
     ]
 }
