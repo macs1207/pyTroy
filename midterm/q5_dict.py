@@ -47,15 +47,22 @@ def server(host, port):
                         tmp_str += tmp[i]
                 for i in range(r):
                     data.pop(0)
-                            
-                sock.send(tmp_str.encode())
+                
+                try:
+                    sock.send(tmp_str.encode())
+                except ConnectionResetError as e:
+                    break
 
             tmp = data
             tmp_str = next_head + "\n"
             for i in range(len(tmp)):
                 tmp_str += tmp[i]
-            sock.send(tmp_str.encode())
-
+                
+            try:
+                sock.send(tmp_str.encode())
+            except ConnectionResetError as e:
+                pass
+            
             sock.close()
                 
 
