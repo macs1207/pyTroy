@@ -11,23 +11,40 @@ class Rational:
     _numerator = None
     _denominator = None
 
-    def __init__(self, numerator, denominator):
-        self._numerator = numerator
-        self._denominator = denominator
-
+    def __init__(self, *args):
+        if len(args) == 0:
+            self._numerator = 0
+            self._denominator = 1
+        elif len(args) == 1:
+            if isinstance(args[0], str):
+                tmp_arg = args[0].replace(' ', '').split('/')
+                self._numerator = int(tmp_arg[0])
+                self._denominator = int(tmp_arg[1])
+            elif isinstance(args[0], int):
+                self._numerator = args[0]
+                self._denominator = 1
+            else:
+                raise ValueError("Invalid input value.")
+        elif len(args) == 2:
+            if args[1] == 0:
+                raise ValueError("Denominator cannot be zero.")
+            self._numerator, self._denominator = args
+        else:
+            raise ValueError("Invalid input value.")
+            
     def reduce(self):
         gcd = math.gcd(self._numerator, self._denominator)
         self._numerator = self._numerator // gcd
         self._denominator = self._denominator // gcd
 
     def add(self, other):
-        return self + other
-
-    def __add__(self, other):
         new_denominator = self._denominator * other._denominator
         new_numerator = self._numerator * other._denominator + \
             other._numerator * self._denominator
         return Rational(new_numerator, new_denominator)
+
+    def __add__(self, other):
+        return self.add(other)
 
     def __str__(self):
         return f"{self._numerator}/{self._denominator}"
@@ -61,10 +78,10 @@ def client(host, port):
         
         rationals = data.decode('UTF-8').split(" + ")
         
-        result = Rational(int(rationals[0].split("/")[0]), int(rationals[0].split("/")[1]))
-        for i in rationals[1:]:
-            rational = Rational(int(i.split("/")[0]), int(i.split("/")[1]))
-            result = result.add(rational)
+        result = Rational()
+        for i in rationals:
+            rational = Rational(i)
+            result += rational
 
         result.reduce()
         print(str(result).encode('UTF-8'))

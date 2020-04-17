@@ -67,16 +67,16 @@ def server(host, port):
                 
 
 def client(host, port):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((host, port))
-    fruit_dict = {}
-    message = ""
-    while True:
-        data = sock.recv(MAX_BYTES)
-        if not data:
-            break
-        message += data.decode('ASCII')
-    
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((host, port))
+        fruit_dict = {}
+        message = ""
+        while True:
+            data = s.recv(MAX_BYTES)
+            if not data:
+                break
+            message += data.decode('ASCII')
+            
     for row in message.split("\n"):
         if row == "":
             continue
@@ -87,8 +87,6 @@ def client(host, port):
 
     for key in sorted(fruit_dict.keys()):
         print(f"{key} {fruit_dict[key]}")
-        
-    sock.close()
 
 def main():
     if len(sys.argv) != 4:
