@@ -3,33 +3,6 @@
 import socket, struct, sys, os
 
 
-def save_file(file_info, dir):
-    import os
-    import shutil
-    filename = file_info.get(NetAPI.FILE_NAME_TAG)
-    filesize = file_info.get(NetAPI.FILE_SIZE_TAG)
-    content = file_info.get(NetAPI.FILE_CONTENT_TAG)
-    tempFile = file_info.get(NetAPI.FILE_BLOCKS_TAG)
-    if not filename or not filesize:
-        return False
-    if not content and not tempFile:
-        return False
-    else:
-        fullname = os.path.join(dir, filename)
-        dirname = os.path.dirname(fullname)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-        if content:     # 如果是整個 content 送過來
-            if len(content) != filesize:
-                raise RuntimeError('size mismatches')
-            with open(fullname, 'wb') as fp:
-                fp.write(content)
-        else:   # 以 blocks 傳過來, 已存於暫存檔
-            if os.path.getsize(tempFile) != filesize:
-                raise RuntimeError('size mismatches')
-            shutil.move(tempFile, fullname)
-        return True
-
 def server(host, port):
     typename = { int:'int', str:'str', bytes:'bytes', float:'float' }  # dict
     listeningSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -45,7 +18,7 @@ def server(host, port):
             if not data:
                 break
             print('receive  from {}\n{}'.format(sockname, data))
-            save_file(data, os.path.join(NetAPI.savePath, sockname[0]))
+            handle.save_file(data, os.path.join(handle.savePath, sockname[0]))
         sock.close()
 
     listeningSock.close()
@@ -55,7 +28,11 @@ def client(host, port):
     sock.connect( (host, port) )
 
     handle = NetAPI(sock)
-    handle.send_file('../a.txt')
+    while True:
+        f = input("Input filename to transmit -- ")
+        if f == '':
+            break
+        handle.send_file(f)
 
     sock.close()
 
@@ -79,15 +56,45 @@ class NetAPI:
         self.oHandle    = NetworkIO(oHandle)
         self.savePath   = './'       # 存檔目錄
         self.maxSize    = 2147483647            # 最大檔案限制
-        self.blockSize  = 4096                  # 區塊大小
+        self.blockSize  = 1024                  # 區塊大小
+
+    def save_file(self, file_info, dir):
+        import os
+        import shutil
+        filename = file_info.get(self.FILE_NAME_TAG)
+        filesize = file_info.get(self.FILE_SIZE_TAG)
+        content = file_info.get(self.FILE_CONTENT_TAG)
+        tempFile = file_info.get(self.FILE_BLOCKS_TAG)
+        if not filename or not filesize:
+            return False
+        if not content and not tempFile:
+            return False
+        else:
+            fullname = os.path.join(dir, filename)
+            dirname = os.path.dirname(fullname)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
+            if content:
+                if len(content) != filesize:
+                    raise RuntimeError('size mismatches')
+                with open(fullname, 'wb') as fp:
+                    fp.write(content)
+            else:
+                if os.path.getsize(tempFile) != filesize:
+                    raise RuntimeError('size mismatches')
+                shutil.move(tempFile, fullname)
+            return True
 
     def send_tag(self, tag):    self.oHandle.write_raw(tag)
+    
     def recv_tag(self): return self.iHandle.read_raw(self.FILE_TAG_SIZE)
 
     def send_data(self, data):  self.oHandle.write(data)
+    
     def recv_data(self): return self.iHandle.read()
 
     def send_size(self, n):     return self.send_data(n)
+    
     def recv_size(self):
         size = self.recv_data()
         if not isinstance(size, int):   # 檢查類別是否為 int
@@ -95,6 +102,7 @@ class NetAPI:
         return size
 
     def send_name(self, s):     return self.send_data(s)
+    
     def recv_name(self):
         path = self.recv_data()
         if not isinstance(path, str):   # 檢查是否為 str
@@ -102,6 +110,7 @@ class NetAPI:
         return path
 
     def send_content(self, d):  return self.send_data(d)
+    
     def recv_content(self):     return self.recv_data()
 
     def send_file(self, path):
@@ -115,7 +124,7 @@ class NetAPI:
             self.send_size(filesize)
             if filesize > self.blockSize:
                 self.send_tag(self.FILE_BLOCKS_TAG)
-                self.send_blocks(self.filename)
+                self.send_blocks(filename)
             else:
                 filedata = open(path, 'rb').read()
                 self.send_tag(self.FILE_CONTENT_TAG)
@@ -131,16 +140,21 @@ class NetAPI:
         result = {}
         while True:
             tag = self.recv_tag()
+            print(tag)
             if not tag or tag in [self.FILE_END_TAG, self.FILE_ABORT_TAG]: break
-            data = self.recv_data()
-            if not data: break
-            
-            if tag in self.FILE_NAME_TAG:
-                if ".." in data:
-                    raise ValueError("Dangerous path.")
-                data = data.replace(":\\", "/").replace("\\", "/")
-                data = data[1:] if data[0] in "/" else data
-            result[tag] = data
+            if tag == self.FILE_BLOCKS_TAG:
+                tempFile = self.recv_blocks()
+                result[tag] = tempFile
+            else:
+                data = self.recv_data()
+                if not data: break
+                if tag in self.FILE_NAME_TAG:
+                    data = data.replace(":\\", "/").replace("\\", "/")
+                    data = data[1:] if data[0] in "/" else data
+                    
+                    if ".." in data:
+                        raise ValueError("Dangerous path.")
+                result[tag] = data
         return result
 
     def send_blocks(self, fileName):
@@ -162,7 +176,6 @@ class NetAPI:
         return totalSize
 
     def recv_blocks(self):
-        import os
         import time
         totalSize = 0
         lastBlockID = 0
