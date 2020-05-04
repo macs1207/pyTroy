@@ -9,13 +9,8 @@ args = parser.parse_args()
 def scan_dir(path, show_file=True, depth=0, prefix=[], parent_is_last=True):
 
     def print_tree(path_name, depth, prefix):
-        for i in prefix:
-            print(i, end='')
-        print(f'{"|   " if depth != 0 else ""}')
-        
-        for i in prefix:
-            print(i, end='')
-        print(f'{"+---" if depth != 0 else ""}{path_name}')
+        print(f'{"".join(prefix)}{"|   " if depth != 0 else ""}')
+        print(f'{"".join(prefix)}{"+---" if depth != 0 else ""}{path_name}')
         
     if os.path.isdir(path):            
         dir_list = sorted(os.listdir(path))
